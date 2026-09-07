@@ -1,27 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GovernmentPortalHeader } from '@/components/portals/GovernmentPortalHeader';
+import { VerificationRequestCard } from '@/components/portals/VerificationRequestCard';
+import { VerificationWorkflowTimeline } from '@/components/portals/VerificationWorkflowTimeline';
+import { DataMinimizationPanel } from '@/components/portals/DataMinimizationPanel';
+import { PortalResponseView } from '@/components/portals/PortalResponseView';
+import { SchemaMappingPanel } from '@/components/portals/SchemaMappingPanel';
+import { DataProvenancePanel } from '@/components/portals/DataProvenancePanel';
+import { PortalTracePanel } from '@/components/portals/PortalTracePanel';
+import { JudgeModeBar } from '@/components/portals/JudgeModeBar';
 import { GlassPanel } from '@/components/glass/GlassPanel';
-import { GlassCard } from '@/components/glass/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import {
-  ShieldCheck, Lock, Network, ArrowRight, ArrowLeft, RefreshCw, CheckCircle2,
-  Code, Eye, Layers, Activity, FileText
-} from 'lucide-react';
+import { ArrowLeft, ShieldAlert, XCircle, AlertTriangle, Lock } from 'lucide-react';
 import { getPortalsDirectoryApi, runPortalVerificationApi } from '@/services/api';
+import { PortalVerificationResponse } from '@/types';
 import { toast } from 'sonner';
 
 export const PortalDetail: React.FC = () => {
-  const { portalId } = useParams<{ portalId: string }>();
+  const { portalId = 'income' } = useParams<{ portalId: string }>();
   const navigate = useNavigate();
 
   const [portalMeta, setPortalMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
-  const [verificationResult, setVerificationResult] = useState<any>(null);
-  const [showRawJson, setShowRawJson] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<PortalVerificationResponse | null>(null);
 
   const fetchPortalMeta = async () => {
     setLoading(true);
@@ -31,11 +34,11 @@ export const PortalDetail: React.FC = () => {
       if (match) {
         setPortalMeta(match);
       } else {
-        // Fallback default
         setPortalMeta({
           id: portalId,
-          name: `${portalId?.toUpperCase()} Department Portal`,
-          department: `${portalId?.toUpperCase()} Verification Department`,
+          code: portalId,
+          name: `${portalId.replace('_', ' ').toUpperCase()} Portal`,
+          department: `${portalId.replace('_', ' ').toUpperCase()} Verification Department`,
           icon_emoji: "🏛️",
           status: "CONNECTED",
           integration_level: "LIVE MOCK"
@@ -52,12 +55,20 @@ export const PortalDetail: React.FC = () => {
     fetchPortalMeta();
   }, [portalId]);
 
-  const handleRunVerification = async () => {
+  const handleRunVerification = async (citizenId: string, scenario: string) => {
     setVerifying(true);
     try {
-      const res = await runPortalVerificationApi(portalId || 'income', 'C1001');
+      const res = await runPortalVerificationApi(portalId, citizenId, scenario);
       setVerificationResult(res);
-      toast.success(`Verification completed via ${portalMeta?.name || 'Department Portal'}`);
+      if (res.status === 'BLOCKED') {
+        toast.error(`Access Denied: Citizen consent not granted for ${portalMeta?.name || 'Department'}`);
+      } else if (res.status === 'TIMEOUT') {
+        toast.warning(`Gateway Timeout: ${portalMeta?.name} failed to respond in SLA`);
+      } else if (res.status === 'UNAVAILABLE') {
+        toast.error(`System Offline: ${portalMeta?.name} is under maintenance`);
+      } else {
+        toast.success(`Verification executed via ${portalMeta?.name || 'Department Portal'}`);
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.detail || 'Portal verification failed');
     } finally {
@@ -66,11 +77,14 @@ export const PortalDetail: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="p-12 text-center text-slate-500 font-medium">Loading Portal Interface...</div>;
+    return <div className="p-12 text-center text-slate-500 font-medium">Loading Government Portal Interface...</div>;
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-16">
+      {/* Judge Mode Navigation */}
+      <JudgeModeBar />
+
       <div className="flex items-center space-x-3">
         <Button variant="outline" size="sm" onClick={() => navigate('/portals')}>
           <ArrowLeft className="h-4 w-4 mr-1" /> Back to Directory
@@ -79,7 +93,7 @@ export const PortalDetail: React.FC = () => {
         <span className="text-[#0F172A] font-bold text-xs">{portalMeta?.name}</span>
       </div>
 
-      {/* Header */}
+      {/* Government Portal Header */}
       <GovernmentPortalHeader
         department={portalMeta?.department}
         portalName={portalMeta?.name}
@@ -88,87 +102,86 @@ export const PortalDetail: React.FC = () => {
         emoji={portalMeta?.icon_emoji}
       />
 
-      {/* Interactive Verification Execution Card */}
-      <GlassPanel header={<h3 className="font-extrabold text-[#0F172A]">Portal Verification Runner (Citizen C1001)</h3>}>
-        <div className="space-y-4">
-          <p className="text-xs text-slate-600 font-medium">
-            Simulate a real-time verification request through the JanSetu Interoperability Gateway to query this department's registry.
-          </p>
+      {/* Interactive Verification Launcher */}
+      <VerificationRequestCard
+        portalName={portalMeta?.name || 'Department Portal'}
+        verifying={verifying}
+        onRunVerification={handleRunVerification}
+      />
 
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-amber-50 border border-amber-200">
-            <div>
-              <span className="text-xs font-bold text-[#002D62]">Target Citizen: Ravi Kumar (C1001)</span>
-              <p className="text-[11px] text-slate-600 font-mono mt-0.5">Consent Status: Active Granted</p>
-            </div>
-
-            <Button
-              onClick={handleRunVerification}
-              disabled={verifying}
-              className="bg-[#FF9933] text-[#0F172A] hover:bg-[#E69500] font-extrabold shadow-md"
-            >
-              {verifying ? 'Executing Gateway Query...' : 'Execute Portal Verification'} <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </GlassPanel>
-
-      {/* Verification Output Details */}
+      {/* Verification Output Section */}
       {verificationResult && (
-        <div className="space-y-6 animate-in fade-in">
-          {/* Data Minimization Panel */}
-          <GlassPanel header={<h3 className="font-extrabold text-[#0F172A]">1. Data Minimization & Field Protection</h3>}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium">
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2">
-                <span className="font-extrabold text-emerald-900 flex items-center">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-700 mr-1.5" /> Requested Fields (Necessary Scope)
-                </span>
-                <ul className="space-y-1 text-emerald-800 font-mono">
-                  {verificationResult.data_minimization?.requested_fields?.map((f: string, i: number) => (
-                    <li key={i}>✓ {f}</li>
-                  ))}
-                </ul>
-              </div>
+        <div className="space-y-8 animate-in fade-in">
 
-              <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 space-y-2">
-                <span className="font-bold text-slate-700 flex items-center">
-                  <Lock className="h-4 w-4 text-slate-500 mr-1.5" /> Protected / Unrequested Fields
-                </span>
-                <ul className="space-y-1 text-slate-600 font-mono">
-                  {verificationResult.data_minimization?.unrequested_fields_protected?.map((f: string, i: number) => (
-                    <li key={i}>○ {f} (Protected)</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </GlassPanel>
-
-          {/* Schema Mapping & Data Provenance */}
-          <GlassPanel header={<h3 className="font-extrabold text-[#0F172A]">2. Schema Transformation & Data Provenance</h3>}>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                  <h4 className="font-bold text-[#002D62]">Department Response Payload</h4>
-                  <pre className="p-3 rounded-lg bg-white border border-slate-200 text-slate-800 overflow-x-auto">
-                    {JSON.stringify(verificationResult.raw_department_response, null, 2)}
-                  </pre>
-                </div>
-
-                <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 space-y-2">
-                  <h4 className="font-bold text-[#0F172A]">Canonical Model Transformation</h4>
-                  <pre className="p-3 rounded-lg bg-white border border-slate-200 text-[#002D62] font-bold overflow-x-auto">
-                    {JSON.stringify(verificationResult.canonical_schema_mapping, null, 2)}
-                  </pre>
+          {/* Access Denied Handling */}
+          {verificationResult.status === 'BLOCKED' ? (
+            <GlassPanel className="p-8 border-red-300 bg-red-50/90 text-red-900 space-y-3">
+              <div className="flex items-center space-x-3">
+                <Lock className="h-7 w-7 text-red-700 shrink-0" />
+                <div>
+                  <h3 className="text-xl font-extrabold text-red-950 uppercase tracking-tight">ACCESS DENIED</h3>
+                  <p className="text-sm font-semibold text-red-800">
+                    The department data was not accessed because citizen consent was not granted.
+                  </p>
                 </div>
               </div>
+              <p className="text-xs text-red-700 font-mono pt-2 border-t border-red-200">
+                Reason: {verificationResult.message || 'Citizen Consent Missing in Central Registry'} | Trace ID: {verificationResult.trace_id}
+              </p>
+            </GlassPanel>
+          ) : (
+            <>
+              {/* Orchestration Workflow Timeline */}
+              <VerificationWorkflowTimeline
+                steps={verificationResult.trace_steps}
+                status={verificationResult.status}
+                latencyMs={verificationResult.latency_ms}
+                portalName={portalMeta?.name || 'Department'}
+              />
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex justify-between items-center font-mono">
-                <span>Trace Correlation: <strong className="text-[#002D62]">{verificationResult.trace_id}</strong></span>
-                <span>Latency: <strong className="text-emerald-700">{verificationResult.latency_ms} ms</strong></span>
-              </div>
-            </div>
-          </GlassPanel>
+              {/* Data Minimization Panel */}
+              <DataMinimizationPanel
+                requestedFields={verificationResult.data_minimization?.requested_fields}
+                protectedFields={verificationResult.data_minimization?.unrequested_fields_protected}
+              />
+
+              {/* Parsed Department Response View */}
+              <PortalResponseView
+                department={verificationResult.department}
+                portalName={verificationResult.portal_name}
+                rawResponse={verificationResult.raw_department_response}
+                status={verificationResult.status}
+                traceId={verificationResult.trace_id}
+              />
+
+              {/* Schema Transformation Diagram */}
+              <SchemaMappingPanel
+                portalId={portalId}
+                department={verificationResult.department}
+                schemaMapping={verificationResult.canonical_schema_mapping}
+                rawResponse={verificationResult.raw_department_response}
+              />
+
+              {/* Data Provenance Panel */}
+              <DataProvenancePanel
+                provenanceItems={verificationResult.data_provenance}
+                defaultDepartment={verificationResult.department}
+                traceId={verificationResult.trace_id}
+              />
+
+              {/* Trace Audit Drawer */}
+              <PortalTracePanel
+                traceId={verificationResult.trace_id}
+                latencyMs={verificationResult.latency_ms}
+                portalName={verificationResult.portal_name}
+                department={verificationResult.department}
+                steps={verificationResult.trace_steps}
+              />
+            </>
+          )}
         </div>
       )}
     </div>
   );
 };
+

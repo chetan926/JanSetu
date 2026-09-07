@@ -81,8 +81,10 @@ export const getPortalsDirectoryApi = async () => {
   return response.data;
 };
 
-export const runPortalVerificationApi = async (portalId: string, citizenId: string) => {
-  const response = await api.get(`/portals/${portalId}/verify/${citizenId}`);
+export const runPortalVerificationApi = async (portalId: string, citizenId: string, scenario: string = 'NORMAL') => {
+  const response = await api.get(`/portals/${portalId}/verify/${citizenId}`, {
+    params: { scenario }
+  });
   return response.data;
 };
 

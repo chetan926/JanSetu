@@ -11,7 +11,10 @@ export const BeforeAfterToggle: React.FC = () => {
     <GlassPanel className="p-6 border-amber-200 bg-white/95">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <Badge variant="saffron" className="mb-1">SIH Innovation Showcase</Badge>
+          <div className="flex items-center space-x-2 mb-1">
+            <Badge variant="saffron">SIH Innovation Showcase</Badge>
+            <Badge variant="navy" className="text-[10px]">Illustrative / Prototype Scenario</Badge>
+          </div>
           <h3 className="text-xl font-extrabold text-[#0F172A]">Before vs. With JanSetu Experience</h3>
           <p className="text-xs text-slate-600 font-medium">Compare traditional multi-portal manual verification against JanSetu's interoperability gateway.</p>
         </div>

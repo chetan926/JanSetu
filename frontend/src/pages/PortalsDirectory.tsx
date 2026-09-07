@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { StatusIndicator } from '@/components/glass/StatusIndicator';
-import { Search, Network, ArrowRight, ShieldCheck, Cpu } from 'lucide-react';
+import { JudgeModeBar } from '@/components/portals/JudgeModeBar';
+import { Search, Network, ArrowRight, ShieldCheck, Cpu, Building2, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getPortalsDirectoryApi } from '@/services/api';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ export const PortalsDirectory: React.FC = () => {
   const [portals, setPortals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
   const fetchDirectory = async () => {
     setLoading(true);
@@ -32,14 +34,22 @@ export const PortalsDirectory: React.FC = () => {
     fetchDirectory();
   }, []);
 
-  const filteredPortals = portals.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const categories = ['ALL', 'Education & Academics', 'Finance & Taxation', 'Identity & Security', 'Land & Property', 'Document Verification', 'Healthcare', 'Transportation'];
+
+  const filteredPortals = portals.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat = selectedCategory === 'ALL' || p.category === selectedCategory;
+    return matchesSearch && matchesCat;
+  });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12">
+      {/* Judge Mode Bar */}
+      <JudgeModeBar />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -51,7 +61,7 @@ export const PortalsDirectory: React.FC = () => {
             Government Verification Portals Directory
           </h1>
           <p className="text-slate-600 text-sm mt-1 font-medium">
-            Explore simulated department portals connected through the JanSetu Interoperability Gateway.
+            Connected through <strong className="text-[#002D62]">JanSetu Interoperability Gateway</strong>. Query department registries in real-time.
           </p>
         </div>
 
@@ -66,17 +76,34 @@ export const PortalsDirectory: React.FC = () => {
         </div>
       </div>
 
+      {/* Category Filter Pills */}
+      <div className="flex items-center space-x-1.5 overflow-x-auto py-1 text-xs">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+              selectedCategory === cat
+                ? 'bg-[#002D62] text-white shadow-sm'
+                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       {/* Directory Grid */}
       {loading ? (
         <div className="p-12 text-center text-slate-500 font-medium">Loading Government Portals Directory...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPortals.map((portal) => (
-            <GlassCard key={portal.id} className="p-6 border-slate-200 bg-white flex flex-col justify-between space-y-4 hover:border-[#FF9933]/50">
+            <GlassCard key={portal.id} className="p-6 border-slate-200 bg-white flex flex-col justify-between space-y-4 hover:border-[#FF9933]/50 transition-all shadow-sm hover:shadow-md">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="text-2xl p-2.5 rounded-2xl bg-amber-50 border border-amber-200">
+                    <div className="text-2xl p-2.5 rounded-2xl bg-amber-50 border border-amber-200 shrink-0">
                       {portal.icon_emoji}
                     </div>
                     <div>
@@ -90,7 +117,7 @@ export const PortalsDirectory: React.FC = () => {
 
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs font-mono">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Connection Status:</span>
+                    <span className="text-slate-500">Gateway Connection:</span>
                     <StatusIndicator status="success" label={portal.status} />
                   </div>
                   <div className="flex justify-between">
@@ -107,7 +134,7 @@ export const PortalsDirectory: React.FC = () => {
                   <span className="text-slate-500 font-bold text-[11px]">Supported Verification Fields:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {portal.supported_fields.map((f: string, idx: number) => (
-                      <Badge key={idx} variant="secondary" className="text-[10px] bg-slate-100 border-slate-200">
+                      <Badge key={idx} variant="secondary" className="text-[10px] bg-slate-100 border-slate-200 font-mono">
                         {f}
                       </Badge>
                     ))}
@@ -115,7 +142,7 @@ export const PortalsDirectory: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end">
+              <div className="pt-2">
                 <Button
                   onClick={() => navigate(`/portals/${portal.id}`)}
                   className="w-full bg-[#002D62] text-white hover:bg-[#0F172A] font-bold shadow-md"
@@ -130,3 +157,4 @@ export const PortalsDirectory: React.FC = () => {
     </div>
   );
 };
+

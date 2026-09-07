@@ -85,3 +85,55 @@ export interface ConsentRecord {
   granted_at: string;
   expires_at?: string;
 }
+
+export interface PortalMeta {
+  id: string;
+  code: string;
+  name: string;
+  department: string;
+  category: string;
+  icon_emoji: string;
+  status: 'CONNECTED' | 'DEGRADED' | 'MAINTENANCE' | 'UNAVAILABLE' | 'REGISTRY READY' | 'FUTURE CONNECTOR';
+  integration_level: 'LIVE MOCK' | 'REGISTRY READY' | 'FUTURE CONNECTOR';
+  service_count: number;
+  endpoint: string;
+  supported_fields: string[];
+  description?: string;
+}
+
+export interface DataProvenanceItem {
+  canonical_field: string;
+  value: string;
+  source_department: string;
+  original_field: string;
+  retrieved_at: string;
+  trace_id: string;
+}
+
+export interface TraceStepItem {
+  step: string;
+  status: 'COMPLETED' | 'FAILED' | 'TIMEOUT' | 'STOPPED' | 'CANCELLED' | 'PENDING';
+  duration_ms: number;
+  detail?: string;
+}
+
+export interface PortalVerificationResponse {
+  status: string;
+  message?: string;
+  trace_id: string;
+  portal_id: string;
+  portal_name: string;
+  department: string;
+  consent_status: 'GRANTED' | 'DENIED';
+  latency_ms: number;
+  data_minimization: {
+    requested_fields: string[];
+    unrequested_fields_protected: string[];
+  };
+  raw_department_response: Record<string, any> | null;
+  canonical_schema_mapping: Record<string, any>;
+  data_provenance?: DataProvenanceItem[];
+  trace_steps?: TraceStepItem[];
+  timestamp: string;
+}
+
