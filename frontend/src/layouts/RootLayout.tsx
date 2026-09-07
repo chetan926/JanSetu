@@ -15,12 +15,12 @@ export const RootLayout: React.FC = () => {
 
       <GlassNavbar />
 
-      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 py-8">
+      <main className="relative z-10 flex-1 w-full max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
       </main>
 
       <footer className="relative z-10 border-t border-slate-200 bg-white/80 backdrop-blur-md py-6 text-center text-xs text-slate-600">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-2">
             <span className="font-bold text-[#002D62]">JanSetu Platform</span>
             <span>© 2026 National Interoperability Gateway • SIH 2026 PS-129 Prototype</span>
