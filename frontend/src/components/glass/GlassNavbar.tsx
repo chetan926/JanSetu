@@ -1,12 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Network, Cpu, FileText, Lock, LayoutDashboard, Bell, ShieldCheck } from 'lucide-react';
+import { Network, Cpu, FileText, Lock, LayoutDashboard, Bell, ShieldCheck, Building2, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export const GlassNavbar: React.FC = () => {
   const navItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { label: 'Portals Directory', path: '/portals', icon: Building2 },
+    { label: 'Verification Hub', path: '/verification', icon: CheckCircle2 },
     { label: 'Services', path: '/services', icon: Cpu },
     { label: 'Consent Center', path: '/consent', icon: Lock },
     { label: 'Interoperability', path: '/interop', icon: Network },
@@ -31,7 +33,7 @@ export const GlassNavbar: React.FC = () => {
                 DEMO MODE
               </Badge>
             </div>
-            <p className="text-[11px] text-slate-500 font-mono">SIH 2026 PS-129 • Interoperability Layer</p>
+            <p className="text-[11px] text-slate-500 font-mono">SIH 2026 PS-129 • Interoperability Ecosystem</p>
           </div>
         </div>
 
@@ -45,7 +47,7 @@ export const GlassNavbar: React.FC = () => {
                 to={item.path}
                 className={({ isActive }) =>
                   cn(
-                    "relative flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200",
+                    "relative flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200",
                     isActive
                       ? "text-[#002D62] bg-white shadow-sm border border-slate-200"
                       : "text-slate-600 hover:text-[#0F172A] hover:bg-slate-200/60"
@@ -54,10 +56,10 @@ export const GlassNavbar: React.FC = () => {
               >
                 {({ isActive }) => (
                   <>
-                    <Icon className={cn("h-4 w-4", isActive ? "text-[#FF9933]" : "text-slate-500")} />
+                    <Icon className={cn("h-3.5 w-3.5", isActive ? "text-[#FF9933]" : "text-slate-500")} />
                     <span>{item.label}</span>
                     {isActive && (
-                      <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#FF9933]" />
+                      <span className="absolute bottom-0 left-2.5 right-2.5 h-0.5 rounded-full bg-[#FF9933]" />
                     )}
                   </>
                 )}

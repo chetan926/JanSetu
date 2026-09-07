@@ -76,4 +76,14 @@ export const setScenarioApi = async (scenarioName: string) => {
   return response.data;
 };
 
+export const getPortalsDirectoryApi = async () => {
+  const response = await api.get('/portals/directory');
+  return response.data;
+};
+
+export const runPortalVerificationApi = async (portalId: string, citizenId: string) => {
+  const response = await api.get(`/portals/${portalId}/verify/${citizenId}`);
+  return response.data;
+};
+
 export default api;

@@ -8,6 +8,9 @@ import { Consent } from '@/pages/Consent';
 import { Interoperability } from '@/pages/Interoperability';
 import { Applications } from '@/pages/Applications';
 import { Admin } from '@/pages/Admin';
+import { PortalsDirectory } from '@/pages/PortalsDirectory';
+import { PortalDetail } from '@/pages/PortalDetail';
+import { VerificationHub } from '@/pages/VerificationHub';
 
 export const router = createBrowserRouter([
   {
@@ -19,6 +22,9 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <Dashboard /> },
+      { path: 'portals', element: <PortalsDirectory /> },
+      { path: 'portals/:portalId', element: <PortalDetail /> },
+      { path: 'verification', element: <VerificationHub /> },
       { path: 'services', element: <Services /> },
       { path: 'consent', element: <Consent /> },
       { path: 'interop', element: <Interoperability /> },

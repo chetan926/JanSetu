@@ -9,7 +9,7 @@ from app.models.models import Citizen, Department, GovernmentService, User
 from app.schemas.schemas import CitizenSchema
 
 # Import API Routers
-from app.api import mock_departments, auth, consent, gateway_api, applications
+from app.api import mock_departments, auth, consent, gateway_api, applications, portals
 from app.ai import assistant
 
 app = FastAPI(
@@ -39,6 +39,7 @@ app.include_router(consent.router)
 app.include_router(gateway_api.router)
 app.include_router(applications.router)
 app.include_router(assistant.router)
+app.include_router(portals.router)
 
 @app.get("/")
 def read_root():
